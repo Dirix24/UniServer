@@ -17,7 +17,13 @@ UniServer evoluciona el esqueleto original a un **centro de operaciones ligero y
 - Dashboard web incluido en `/dashboard`.
 - Imagen Docker con usuario sin privilegios y volumen persistente.
 
-Para actualizar una instalación existente, sigue primero la [guía del core](docs/core-hardening.md).
+## Estado del proyecto
+
+La Entrega A endurece el core e incorpora revocación de sesiones, rotación de tokens de agente, autorización por colección en WebSocket, controles de destino para los health checks y recuperación del almacén JSON. La validación incluyó 22 pruebas automatizadas, `npm audit` sin hallazgos y un flujo de dashboard y reinicio en Brave. La construcción de la imagen Docker queda pendiente de verificar.
+
+La Entrega B incorpora el agente Linux, métricas reales, histórico y alertas. El core actual admite registro y heartbeat de agentes.
+
+**Antes de actualizar una instalación existente**, detén UniServer y guarda una copia del JSON activo fuera del checkout. Sigue la [guía del core](docs/core-hardening.md) para configurar `DATA_FILE` y restaurar una copia si es necesario.
 
 ## Arranque
 ```bash
@@ -27,7 +33,7 @@ cp .env.example .env
 npm ci
 npm start
 ```
-Abre `http://localhost:3000/dashboard`.
+Abre `http://localhost:3000/dashboard/`. Puedes comprobar el estado del almacén con `curl -fsS http://localhost:3000/api/ready`.
 
 ## Autenticación
 Dos modos, compatibles entre sí:
