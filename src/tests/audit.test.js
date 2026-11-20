@@ -1,6 +1,5 @@
-process.env.ADMIN_API_KEY='test-key';
-process.env.DATA_FILE='./data/uniserver.test-audit.json';
-const fs=require('fs'); try{fs.unlinkSync(process.env.DATA_FILE)}catch{}
+process.env.ADMIN_API_KEY = 'test-key';
+require('./data-fixture')();
 const request=require('supertest'); const app=require('../index');
 
 describe('Auditoría', ()=>{

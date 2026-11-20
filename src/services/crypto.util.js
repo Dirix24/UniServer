@@ -12,4 +12,9 @@ function verifyPassword(password, salt, hash) {
 }
 function newToken() { return crypto.randomBytes(32).toString('hex'); }
 function hashToken(token) { return crypto.createHash('sha256').update(String(token || '')).digest('hex'); }
-module.exports = { hashPassword, verifyPassword, newToken, hashToken };
+function equalSecret(left, right) {
+  if (typeof left !== 'string' || typeof right !== 'string' || !left || !right) return false;
+  return crypto.timingSafeEqual(Buffer.from(hashToken(left), 'hex'), Buffer.from(hashToken(right), 'hex'));
+}
+
+module.exports = { hashPassword, verifyPassword, newToken, hashToken, equalSecret };

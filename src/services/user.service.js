@@ -1,5 +1,6 @@
 const store = require('./store.service');
 const { hashPassword, verifyPassword } = require('./crypto.util');
+const { username: validUsername, password: validPassword, invalid } = require('../utils/validation');
 const { VALID_ROLES } = require('../config/roles');
 
 function sanitize(u){ if(!u) return u; const {passwordHash, passwordSalt, ...rest} = u; return rest; }
@@ -7,11 +8,16 @@ function list(){ return store.list('users').map(sanitize); }
 function findByUsername(username){ return store.list('users').find(u=>u.username===username); }
 
 function create({username, password, role}){
-  if(!username || !password) throw Object.assign(new Error('username y password son obligatorios'), {statusCode:400});
-  if(!VALID_ROLES.includes(role)) throw Object.assign(new Error('role inválido'), {statusCode:400});
-  if(findByUsername(username)) throw Object.assign(new Error('El usuario ya existe'), {statusCode:409});
-  const {salt, hash} = hashPassword(password);
-  const user = store.create('users', {username, role, passwordSalt:salt, passwordHash:hash, active:true});
+  if (!validUsername(username) || !validPassword(password) || password.length < 12) {
+    invalid('Usuario inválido o contraseña de menos de 12 caracteres');
+  }
+  if (!VALID_ROLES.includes(role)) invalid('role inválido');
+  const { salt, hash } = hashPassword(password);
+  const user = store.create('users', { username, role, passwordSalt: salt, passwordHash: hash, active: true }, { guard: data => {
+    if (data.users.some(entry => entry.username === username)) {
+      throw Object.assign(new Error('El usuario ya existe'), { statusCode: 409 });
+    }
+  } });
   return sanitize(user);
 }
 
@@ -24,12 +30,13 @@ function verify(username, password){
 
 function setRole(id, role){
   if(!VALID_ROLES.includes(role)) throw Object.assign(new Error('role inválido'), {statusCode:400});
-  const user = store.update('users', id, {role});
+  const user = store.update('users', id, {role}, {revokeSessions: true});
   return sanitize(user);
 }
 
 function setActive(id, active){
-  const user = store.update('users', id, {active: !!active});
+  if (typeof active !== 'boolean') invalid('active debe ser booleano');
+  const user = store.update('users', id, {active}, {revokeSessions: true});
   return sanitize(user);
 }
 

@@ -7,7 +7,7 @@ r.get('/health', (req,res)=>{
 });
 r.get('/ready', (req,res)=>{
   try{ store.list('servers'); res.json({ok:true, status:'ready'}); }
-  catch(e){ res.status(503).json({ok:false, status:'not-ready', error:e.message}); }
+  catch(e){ res.status(503).json({ok:false, status:'not-ready'}); }
 });
 r.get('/version', (req,res)=>{
   res.json({ok:true, name:pkg.name, version:pkg.version});
