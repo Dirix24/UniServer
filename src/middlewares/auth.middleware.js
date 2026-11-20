@@ -1,3 +1,4 @@
+const { equalSecret } = require('../services/crypto.util');
 const authService = require('../services/auth.service');
 const { can } = require('../config/roles');
 
@@ -12,7 +13,7 @@ function requireAuth(req,res,next){
   const apiKey = req.get('x-api-key');
   const bearer = extractBearer(req);
   // Compatibilidad retro: ADMIN_API_KEY actúa como SUPER_ADMIN (x-api-key o Bearer)
-  if(configuredKey && (apiKey===configuredKey || bearer===configuredKey)){
+  if(configuredKey && (equalSecret(apiKey, configuredKey) || equalSecret(bearer, configuredKey))){
     req.user = {id:'legacy-superadmin', username:'legacy-superadmin', role:'SUPER_ADMIN'};
     return next();
   }

@@ -9,23 +9,31 @@ UniServer evoluciona el esqueleto original a un **centro de operaciones ligero y
 - Concepto de **puentes (bridges)** para representar conexiones entre nodos, regiones o servicios y dejar preparada la topología.
 - **Agentes**: registro con token propio, heartbeat autenticado, paso automático a `offline` si dejan de reportar.
 - **Usuarios y RBAC real** (`SUPER_ADMIN, ADMIN, OPERATOR, AUDITOR, VIEWER`), validado siempre en backend.
-- **Auditoría inmutable** de toda acción administrativa (solo lectura vía API).
-- **Tiempo real** por WebSocket (`/ws`) — cualquier cambio del inventario se retransmite sin polling.
+- **Auditoría** de operaciones administrativas, de solo lectura vía API.
+- **Tiempo real** por WebSocket (`/ws`) — notificaciones por colección con suscripción autorizada.
 - Self-monitoring: `GET /api/health`, `/api/ready`, `/api/version`.
 - API protegida por API key (compatibilidad retro) o por sesión de usuario, cabeceras de seguridad y rate limiting.
 - Persistencia local atómica en JSON para arrancar sin una base de datos obligatoria.
 - Dashboard web incluido en `/dashboard`.
-- Docker listo para producción como punto de partida.
+- Imagen Docker con usuario sin privilegios y volumen persistente.
+
+## Estado del proyecto
+
+La Entrega A endurece el core e incorpora revocación de sesiones, rotación de tokens de agente, autorización por colección en WebSocket, controles de destino para los health checks y recuperación del almacén JSON. La validación incluyó 22 pruebas automatizadas, `npm audit` sin hallazgos y un flujo de dashboard y reinicio en Brave. La construcción de la imagen Docker queda pendiente de verificar.
+
+La Entrega B incorpora el agente Linux, métricas reales, histórico y alertas. El core actual admite registro y heartbeat de agentes.
+
+**Antes de actualizar una instalación existente**, detén UniServer y guarda una copia del JSON activo fuera del checkout. Sigue la [guía del core](docs/core-hardening.md) para configurar `DATA_FILE` y restaurar una copia si es necesario.
 
 ## Arranque
 ```bash
 cp .env.example .env
 # cambia ADMIN_API_KEY (modo rápido / compatibilidad retro)
 # o define ADMIN_USERNAME + ADMIN_PASSWORD para crear un SUPER_ADMIN real al primer arranque
-npm install
+npm ci
 npm start
 ```
-Abre `http://localhost:3000/dashboard`.
+Abre `http://localhost:3000/dashboard/`. Puedes comprobar el estado del almacén con `curl -fsS http://localhost:3000/api/ready`.
 
 ## Autenticación
 Dos modos, compatibles entre sí:
@@ -42,10 +50,11 @@ Dos modos, compatibles entre sí:
 - `GET/POST/PATCH/DELETE /api/admin/bridges` — topología/puentes.
 - `GET/POST/PATCH/DELETE /api/admin/events` — eventos.
 - `GET/POST/DELETE /api/admin/agents` — gestión de agentes (RBAC: `agents.*`).
+- `POST /api/admin/agents/:id/rotate-token` — emite un token nuevo e invalida el anterior.
 - `POST /api/agents/:id/heartbeat` — reportado por el propio agente con `x-agent-token` (no requiere sesión de usuario).
 - `GET/POST/PATCH /api/admin/users` — gestión de usuarios (solo `SUPER_ADMIN`).
 - `GET /api/admin/audit` — auditoría de solo lectura (RBAC: `audit.read`).
-- `ws://.../ws?apiKey=...` o `?token=...` — eventos en tiempo real.
+- `/ws` — handshake con `Authorization` o `x-api-key` y suscripciones por colección.
 
 Todas las rutas administrativas requieren autenticación y el permiso RBAC correspondiente — nunca solo el frontend.
 

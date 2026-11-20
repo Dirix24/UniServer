@@ -1,11 +1,11 @@
+const v = require('../utils/validation');
 const authService = require('../services/auth.service');
 const audit = require('../services/audit.service');
 
 async function login(req,res){
-  const {username, password} = req.body||{};
-  if(!username || !password) return res.status(400).json({ok:false,error:'username y password son obligatorios'});
+  const {username, password} = v.fields(req.body, {username: v.username, password: v.password}, ['username', 'password']);
   const result = authService.login(username, password);
-  if(!result){ audit.record({actor:username, action:'auth.login', result:'FAILURE'}); return res.status(401).json({ok:false,error:'Credenciales inválidas'}); }
+  if(!result){ audit.record({action:'auth.login', result:'FAILURE'}); return res.status(401).json({ok:false,error:'Credenciales inválidas'}); }
   audit.record({actor:result.user.username, action:'auth.login', result:'SUCCESS'});
   res.json({ok:true, data: result});
 }
