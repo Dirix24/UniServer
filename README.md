@@ -60,3 +60,11 @@ Todas las rutas administrativas requieren autenticación y el permiso RBAC corre
 
 ## Arquitectura objetivo
 El proyecto queda preparado para crecer hacia una plataforma universal con **agentes por servidor**, adaptadores SSH/WinRM/PowerShell, Docker/Kubernetes, métricas Prometheus, alertas, backups, tareas programadas, RBAC, auditoría y descubrimiento controlado. La ejecución remota debe implementarse mediante agentes/adaptadores explícitos y permisos mínimos, no mediante comandos arbitrarios expuestos en la API.
+
+## Creado con inteligencia artificial
+
+**UniServer ha sido creado con inteligencia artificial (IA).** La IA se ha utilizado para generar y desarrollar el código, la arquitectura y la documentación del proyecto, bajo la dirección de **Dirix24**.
+
+El proyecto puede contener errores o limitaciones propios del código generado por IA. Se recomienda revisar, probar y auditar el software antes de utilizarlo en producción.
+
+**Proyecto dirigido y mantenido por Dirix24.**
